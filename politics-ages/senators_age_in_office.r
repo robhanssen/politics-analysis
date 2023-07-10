@@ -30,7 +30,10 @@ data_cleaned <-
     mutate(born = ymd(str_remove_all(born, "\\).*|\\("))) %>%
     mutate(assumed_office = mdy(assumed_office)) %>%
     mutate(party_2 = str_remove(party_2, "\\(DFL\\)")) %>%
-    mutate(party = factor(party_2)) %>%
+    mutate(party = factor(party_2,
+        ordered = TRUE,
+        levels = c("Democratic", "Republican", "Independent")
+    )) %>%
     select(-party_2)
 
 senators <-
@@ -159,8 +162,9 @@ senators %>%
     group_by(age_decade, party.x) %>%
     summarize(n = n(), .groups = "drop") %>%
     arrange(-age_decade) %>%
+    filter(age_decade > 40) %>%
     pivot_wider(names_from = party.x, values_from = n, values_fill = 0) %>%
     knitr::kable(caption = glue::glue(
-        "Affiliation of senators by age bracket",
+        "Affiliation of senators by age bracket ",
         "in states with governors of other affiliation"
     ))
