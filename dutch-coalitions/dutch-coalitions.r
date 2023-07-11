@@ -87,6 +87,10 @@ colors <-
         "ChristenUnie" = "lightblue"
     )
 
+min_pres_alpha <-
+    c("TRUE" = 1, 
+    "FALSE" = .3)
+
 
 cab_data %>%
     group_by(minister_president) %>%
@@ -103,9 +107,12 @@ cab_data %>%
     scale_color_manual(values = colors) +
     labs(x = "", y = "")
 
-
 cab_data %>%
     unnest_longer(partijlist) %>%
+    semi_join(in_cab_leng %>% filter(in_kabinet > 5),
+        by = c("partijlist" = "partij")
+    ) %>%
+    mutate(min_pres = partijlist == min_pres_partij) %>%
     ggplot() +
     aes(y = factor(partijlist,
         ordered = TRUE,
@@ -114,11 +121,19 @@ cab_data %>%
     geom_segment(
         aes(
             x = aantreden, xend = aftreden,
-            yend = partijlist, color = partijlist
+            yend = partijlist, color = partijlist,
+            alpha = min_pres
         ),
-        linewidth = 8, alpha = 1
+        linewidth = 8
     ) +
     scale_color_manual(values = colors) +
-    labs(x = "", y = "")
+    scale_alpha_manual(values = min_pres_alpha) +
+    labs(x = "", y = "",
+        caption = glue::glue("Partijen met coalitiedeelname meer dan 5 jaar sinds 1945.\n",
+        "Transparante kleuren tonen kabinetsdeelname, niet-transparante kleur toont partij van de premier."))
+
+ggsave("dutch-coalitions/party-in-gov.png", height = 3, width = 7)
 
 Sys.setlocale("LC_TIME", oldloc)
+
+
