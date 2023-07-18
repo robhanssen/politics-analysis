@@ -12,7 +12,9 @@ theme_set(theme_light() +
         axis.ticks = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = "none"
+        legend.position = "none",
+        plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0)
     ))
 
 url <- "https://nl.wikipedia.org/wiki/Nederlandse_kabinetten_sinds_de_Tweede_Wereldoorlog" # nolint
@@ -93,6 +95,10 @@ p1 <-
         ),
         linewidth = 8
     ) +
+    scale_x_date(
+        date_labels = "%Y",
+        breaks = ymd(19450101) + c(0, 5, seq(15, 200, 10)) * years(1)
+    ) +
     scale_color_manual(values = colors) +
     scale_alpha_manual(values = min_pres_alpha) +
     labs(
@@ -140,5 +146,17 @@ cab_data %>%
     arrange(-min_pres_tijd) %>%
     mutate(min_pres_tijd = round(min_pres_tijd, 1)) %>%
     knitr::kable(caption = "Partij van de minister-president sinds 1975")
+
+cab_len_g <-
+    cab_data %>%
+    group_by(minister_president) %>%
+    arrange(cab_length) %>%
+    ggplot(aes(y = fct_reorder(kabinet, cab_length), 
+            x = cab_length, fill = min_pres_partij),
+            ) +
+    geom_col() +
+    geom_vline(xintercept = 4) +
+    scale_fill_manual(values = colors) + 
+    labs(x = "Kabinet termijn (in jaren)", y = "")
 
 Sys.setlocale("LC_TIME", oldloc)
