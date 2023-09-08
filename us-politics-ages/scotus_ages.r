@@ -69,7 +69,7 @@ scotus %>%
     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "gray70")) +
     labs(x = "Age", y = "")
 
-ggsave("politics-ages/scotus_ages.png", height = 15, width = 6)
+ggsave("us-politics-ages/scotus_ages.png", height = 15, width = 6)
 
 scotus %>%
     mutate(name = fct_reorder(name, term_length)) %>%

@@ -1,10 +1,10 @@
 # combined_plot
 library(patchwork)
 
-source("politics-ages/presidents_age_in_office.r")
-source("politics-ages/governors.r")
-source("politics-ages/house_age_in_office.r")
-source("politics-ages/senators_age_in_office.r")
+source("us-politics-ages/presidents_age_in_office.r")
+source("us-politics-ages/governors.r")
+source("us-politics-ages/house_age_in_office.r")
+source("us-politics-ages/senators_age_in_office.r")
 
 
 p1 <-
@@ -41,7 +41,7 @@ p_combined <-
     )
 
 
-ggsave("politics-ages/both.png",
+ggsave("us-politics-ages/both.png",
     width = 12, height = 12,
     plot = p_combined
 )

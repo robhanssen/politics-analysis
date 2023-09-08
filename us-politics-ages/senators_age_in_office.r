@@ -101,7 +101,7 @@ sen_plot <-
     )
 
 
-ggsave("politics-ages/senator_ages.png",
+ggsave("us-politics-ages/senator_ages.png",
     width = 6, height = 12,
     plot = sen_plot
 )
@@ -129,12 +129,12 @@ time_sen_plot <-
     ) +
     labs(x = "Time in office (in years)", y = "")
 
-ggsave("politics-ages/senator_time_in_office.png",
+ggsave("us-politics-ages/senator_time_in_office.png",
     width = 6, height = 12,
     plot = time_sen_plot
 )
 
-load("politics-ages/governors.RData")
+load("us-politics-ages/governors.RData")
 
 # senators %>%
 #     inner_join(governors, by = "state") %>%

@@ -39,7 +39,7 @@ governors <-
         time_in_office = (today() - inauguration) / dyears(1)
     )
 
-save(governors, file = "politics-ages/governors.RData")
+save(governors, file = "us-politics-ages/governors.RData")
 
 gov_age <-
     governors %>%
@@ -71,7 +71,7 @@ gov_age <-
             )
     )
 
-ggsave("politics-ages/governors_age.png",
+ggsave("us-politics-ages/governors_age.png",
     width = 6, height = 12,
     plot = gov_age
 )

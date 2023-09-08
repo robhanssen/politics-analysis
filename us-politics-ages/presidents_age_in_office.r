@@ -96,7 +96,7 @@ prez_plot <-
     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "gray70")) +
     labs(x = "Age", y = "")
 
-ggsave("politics-ages/president_ages.png", width = 8, height = 6, 
+ggsave("us-politics-ages/president_ages.png", width = 8, height = 6, 
     plot = prez_plot)
 
 #
@@ -135,5 +135,5 @@ prez_plot_cdf <- prez_plot +
      patchwork::inset_element(lognormal_plot, .0, .6, .3, .95)
 
 
-ggsave("politics-ages/president_ages_cdf.png", width = 8, height = 6, 
+ggsave("us-politics-ages/president_ages_cdf.png", width = 8, height = 6, 
     plot = prez_plot_cdf)

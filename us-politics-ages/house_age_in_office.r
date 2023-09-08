@@ -112,7 +112,7 @@ mem_plot <-
           panel.grid.major.y = element_blank())
 
 
-ggsave("politics-ages/rep_ages.png",
+ggsave("us-politics-ages/rep_ages.png",
     width = 6, height = 12,
     plot = mem_plot
 )
@@ -141,7 +141,7 @@ time_mem_plot <-
     labs(x = "Time in office (in years)", y = "") +
     theme(axis.text.y = element_blank())
 
-ggsave("politics-ages/rep_time_in_office.png",
+ggsave("us-politics-ages/rep_time_in_office.png",
     width = 6, height = 12,
     plot = time_mem_plot
 )
