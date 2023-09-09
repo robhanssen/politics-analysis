@@ -110,3 +110,66 @@ majoritycoalitions %>%
         " poll on {format(polldate, format = '%b %d, %Y')}"
       )
   )
+
+coalitions %>%
+  filter(seatcount >= 75) %>%
+  arrange(numparties, -seatcount) %>%
+  slice_head(n = 15) %>%
+  rownames_to_column() %>%
+  mutate(
+    plist = map(partylist, ~ unlist(str_split(.x, ", "))),
+    plen = map_dbl(plist, length)
+  ) %>%
+  unnest_longer(plist) %>%
+  inner_join(election, by = join_by(plist == parties)) %>%
+  unite(pplist, c("plist", "totalseats"), sep = " (", ) %>%
+  mutate(pplist = paste0(pplist, ")")) %>%
+  group_by(rowname) %>%
+  nest(nested_party = pplist) %>%
+  ungroup() %>%
+  mutate(ppplist = map_chr(nested_party, ~ paste(unlist(.x), collapse = ", "))) %>%
+  select(ppplist, numparties, seatcount) %>%
+  select(Coalitions = "ppplist", "Seat Count" = "seatcount") %>%
+  knitr::kable(
+    caption =
+      glue::glue(
+        "Possible majority coalitions based on {pollco}",
+        " poll on {format(polldate, format = '%b %d, %Y')}"
+      )
+  )
+
+
+
+coalitions %>%
+  filter(seatcount >= 75) %>%
+  arrange(numparties, -seatcount) %>%
+  slice_head(n = 15) %>%
+  rownames_to_column() %>%
+  mutate(
+    plist = map(partylist, ~ unlist(str_split(.x, ", "))),
+    plen = map_dbl(plist, length)
+  ) %>%
+  unnest_longer(plist) %>%
+  inner_join(election, by = join_by(plist == parties)) %>%
+  unite(pplist, c("plist", "totalseats"), sep = " (", ) %>%
+  mutate(pplist = paste0(pplist, ")")) %>%
+  group_by(rowname) %>%
+  nest(nested_party = pplist) %>%
+  ungroup() %>%
+  mutate(ppplist = map_chr(nested_party, ~ paste(unlist(.x), collapse = ", "))) %>%
+  select(partylist, ppplist, numparties, seatcount) %>%
+  select(Coalitions = "partylist", "Seat Count" = "seatcount", ppplist) %>%
+  mutate(
+    Seats = str_trim(
+      str_remove_all(ppplist, "D66|\\/|,|\\(|\\)|[A-Za-z]")
+    ),
+    Seats = str_replace_all(Seats, "  ", ", ")
+  ) %>%
+  select(-ppplist) %>%
+  knitr::kable(
+    caption =
+      glue::glue(
+        "Possible majority coalitions based on {pollco}",
+        " poll on {format(polldate, format = '%b %d, %Y')}"
+      )
+  )
