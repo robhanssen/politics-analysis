@@ -127,7 +127,10 @@ coalitions %>%
   group_by(rowname) %>%
   nest(nested_party = pplist) %>%
   ungroup() %>%
-  mutate(ppplist = map_chr(nested_party, ~ paste(unlist(.x), collapse = ", "))) %>%
+  mutate(ppplist = map_chr(
+    nested_party,
+    ~ paste(unlist(.x), collapse = ", ")
+  )) %>%
   select(ppplist, numparties, seatcount) %>%
   select(Coalitions = "ppplist", "Seat Count" = "seatcount") %>%
   knitr::kable(
@@ -156,12 +159,15 @@ coalitions %>%
   group_by(rowname) %>%
   nest(nested_party = pplist) %>%
   ungroup() %>%
-  mutate(ppplist = map_chr(nested_party, ~ paste(unlist(.x), collapse = ", "))) %>%
+  mutate(ppplist = map_chr(
+    nested_party,
+    ~ paste(unlist(.x), collapse = ", ")
+  )) %>%
   select(partylist, ppplist, numparties, seatcount) %>%
   select(Coalitions = "partylist", "Seat Count" = "seatcount", ppplist) %>%
   mutate(
     Seats = str_trim(
-      str_remove_all(ppplist, "D66|\\/|,|\\(|\\)|[A-Za-z]")
+      str_remove_all(ppplist, "X50|D66|\\/|,|\\(|\\)|[A-Za-z]")
     ),
     Seats = str_replace_all(Seats, "  ", ", ")
   ) %>%
