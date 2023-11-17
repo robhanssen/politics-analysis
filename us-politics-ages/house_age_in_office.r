@@ -19,7 +19,7 @@ data_raw <- url %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[6]') %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
-    select(district, member, party_2, born_2 = born_4, assumed_office)
+    select(district, member, party_2, born_2 = born_3, assumed_office)
 
 data_cleaned <-
     data_raw %>%
