@@ -9,7 +9,7 @@ theme_set(theme_light())
 totalseats <- 150
 
 # election result
-election <- read_csv("dutch-elections/sources/2021votecount.csv")
+election <- read_csv("dutch-elections/sources/2023votecount.csv")
 # total number of valid votes casts
 totalvotes <- sum(election$votes)
 
