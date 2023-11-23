@@ -108,8 +108,10 @@ mem_plot <-
         x = 40, y = 15,
         hjust = 0, label = "US average\nage"
     ) +
-    theme(axis.text.y = element_blank(),
-          panel.grid.major.y = element_blank())
+    theme(
+        axis.text.y = element_blank(),
+        panel.grid.major.y = element_blank()
+    )
 
 
 ggsave("us-politics-ages/rep_ages.png",
@@ -125,8 +127,7 @@ time_mem_plot <-
     geom_col(aes(x = time_in_office, fill = party)) +
     scale_x_continuous(
         breaks = seq(0, 100, 10),
-        # limits = c(35, NA),
-        sec.axis = sec_axis(~.,
+         sec.axis = sec_axis(~.,
             breaks = seq(0, 100, 10)
         )
     ) +
