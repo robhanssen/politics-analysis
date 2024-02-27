@@ -54,7 +54,7 @@ scotus <-
     ungroup()
 
 scotus %>%
-    mutate(name = fct_reorder(name, youngest_age_in_office)) %>%
+    mutate(name = fct_reorder(name, oldest_age_out_office)) %>%
     ggplot() +
     aes(y = name) +
     geom_segment(

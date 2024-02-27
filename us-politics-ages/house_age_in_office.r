@@ -19,22 +19,21 @@ data_raw <- url %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[6]') %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
-    select(district, member, party_2, born_2 = born_3, assumed_office)
+    rename_with(~"born", starts_with("born")) %>%
+    select(district, member, party_2, born, assumed_office)
 
 data_cleaned <-
     data_raw %>%
-    mutate(across(
-        everything(),
-        ~ str_remove_all(.x, "\\[[[:lower:]]\\]")
-    )) %>%
-    mutate(born = ymd(str_remove_all(born_2, "\\).*|\\("))) %>%
-    mutate(party_2 = str_remove(party_2, "\\(DFL\\)")) %>%
-    mutate(party = factor(party_2)) %>%
-    mutate(assumed_office = as.numeric(str_trim(str_remove_all(assumed_office, "\\(.*|\\)")))) %>%
-    mutate(assumed_office = ymd(glue::glue("{assumed_office}-01-03"))) %>%
-    mutate(state = str_remove_all(district, "\\d{2}")) %>%
-    mutate(state_abb = state.abb[state == state]) %>%
-    select(-party_2, -born_2)
+    mutate(across(everything(), ~ str_remove_all(.x, "\\[[[:lower:]]\\]")),
+        born = ymd(str_remove_all(born, "\\).*|\\(")),
+        party = factor(str_remove(party_2, "\\(DFL\\)")),
+        assumed_office = as.numeric(str_trim(str_remove_all(assumed_office, "\\(.*|\\)"))),
+        assumed_office = ymd(glue::glue("{assumed_office}-01-03")),
+        state = str_trim(str_remove_all(district, "\\d{1,2}|at-large")),
+        state_abb = sapply(state, function(x) state.abb[which(state.name == x)])
+    ) %>%
+    select(-party_2)
+
 
 members <-
     data_cleaned %>%
@@ -68,12 +67,11 @@ mem_plot <-
         )
     ) +
     scale_color_manual(
-        values =
-            c(
-                "Democratic" = "blue",
-                "Republican" = "red",
-                "Independent" = "gray70"
-            )
+        values = c(
+            "Democratic" = "blue",
+            "Republican" = "red",
+            "Independent" = "gray70"
+        )
     ) +
     labs(x = "Age", y = "") +
     geom_vline(
@@ -127,17 +125,16 @@ time_mem_plot <-
     geom_col(aes(x = time_in_office, fill = party)) +
     scale_x_continuous(
         breaks = seq(0, 100, 10),
-         sec.axis = sec_axis(~.,
+        sec.axis = sec_axis(~.,
             breaks = seq(0, 100, 10)
         )
     ) +
     scale_fill_manual(
-        values =
-            c(
-                "Democratic" = "blue",
-                "Republican" = "red",
-                "Independent" = "gray70"
-            )
+        values = c(
+            "Democratic" = "blue",
+            "Republican" = "red",
+            "Independent" = "gray70"
+        )
     ) +
     labs(x = "Time in office (in years)", y = "") +
     theme(axis.text.y = element_blank())

@@ -26,12 +26,11 @@ p2 <-
 p_combined <-
     p1 + p2 +
     plot_annotation(
-        caption =
-            glue::glue(
-                "Age of Congressmen and women from their assumption ",
-                "until today.\nAs of ",
-                format(today(), format = "%B %d, %Y")
-            ),
+        caption = glue::glue(
+            "Age of Congressmen and women from their assumption ",
+            "until today.\nAs of ",
+            format(today(), format = "%B %d, %Y")
+        ),
         title = "Are you older than a Congressperson?",
         theme = theme(
             plot.caption = element_text(hjust = 0),

@@ -23,17 +23,14 @@ data_raw <- url %>%
 
 data_cleaned <-
     data_raw %>%
-    mutate(across(
-        everything(),
-        ~ str_remove_all(.x, "\\[[[:lower:]]\\]")
-    )) %>%
-    mutate(born = ymd(str_remove_all(born, "\\).*|\\("))) %>%
-    mutate(assumed_office = mdy(assumed_office)) %>%
-    mutate(party_2 = str_remove(party_2, "\\(DFL\\)")) %>%
-    mutate(party = factor(party_2,
-        ordered = TRUE,
-        levels = c("Democratic", "Republican", "Independent")
-    )) %>%
+    mutate(across(everything(), ~ str_remove_all(.x, "\\[[[:lower:]]\\]")),
+        born = ymd(str_remove_all(born, "\\).*|\\(")),
+        assumed_office = mdy(assumed_office),
+        party = factor(str_remove(party_2, "\\(DFL\\)"),
+            ordered = TRUE,
+            levels = c("Democratic", "Republican", "Independent")
+        )
+    ) %>%
     select(-party_2)
 
 senators <-
@@ -42,7 +39,7 @@ senators <-
         age = (today() - born) / lubridate::dyears(1),
         age_in_office = (assumed_office - born) / lubridate::dyears(1),
         time_in_office = (today() - assumed_office) / lubridate::dyears(1),
-        # state_abb = state.abb[which(state.name == data_cleaned$state)]
+        state_abb = sapply(state, function(x) state.abb[which(state.name == x)])
     )
 
 sen_plot <-
@@ -67,12 +64,11 @@ sen_plot <-
         )
     ) +
     scale_color_manual(
-        values =
-            c(
-                "Democratic" = "blue",
-                "Republican" = "red",
-                "Independent" = "gray70"
-            )
+        values = c(
+            "Democratic" = "blue",
+            "Republican" = "red",
+            "Independent" = "gray70"
+        )
     ) +
     labs(x = "Age", y = "") +
     geom_vline(
@@ -120,12 +116,11 @@ time_sen_plot <-
         )
     ) +
     scale_fill_manual(
-        values =
-            c(
-                "Democratic" = "blue",
-                "Republican" = "red",
-                "Independent" = "gray70"
-            )
+        values = c(
+            "Democratic" = "blue",
+            "Republican" = "red",
+            "Independent" = "gray70"
+        )
     ) +
     labs(x = "Time in office (in years)", y = "")
 
