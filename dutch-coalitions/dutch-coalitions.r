@@ -82,6 +82,7 @@ p1 <-
         by = c("partijlist")
     ) %>%
     mutate(min_pres = partijlist == min_pres_partij) %>%
+    filter(aantreden >= ymd(19450101)) %>%
     ggplot() +
     aes(y = factor(partijlist,
         ordered = TRUE,

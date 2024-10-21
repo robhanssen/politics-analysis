@@ -17,12 +17,14 @@ data_raw <- url %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
     html_table(fill = TRUE)
 
-names(data_raw) <- data_raw[1, ]
+# names(data_raw) <- data_raw[1, ]
 
 governors <-
     data_raw %>%
     janitor::clean_names() %>%
     filter(state != "State") %>%
+    select(-starts_with("na")) %>%
+    rename_with(~str_remove(.x, "_[0-9]*")) %>%
     select(state, governor, inauguration, party = party_2, born) %>%
     mutate(
         party = case_when(
@@ -31,6 +33,7 @@ governors <-
             TRUE ~ party
         ),
         state = str_trim(str_remove(state, "\\(list\\)")),
+        inauguration = str_remove_all(inauguration, "\\[\\d{2}\\]"),
         inauguration = mdy(inauguration),
         state_abb = state.abb[which(state.name == state)],
         born = ymd(str_remove_all(born, "\\).*|\\(")),
