@@ -23,7 +23,7 @@ data_raw <- url %>%
 
 data_cleaned <-
     data_raw %>%
-    mutate(across(everything(), ~ str_remove_all(.x, "\\[[[:lower:]]\\]")),
+    mutate(across(everything(), ~ str_remove_all(.x, "\\[[[:lower:]]+\\]")),
         born = ymd(str_remove_all(born, "\\).*|\\(")),
         assumed_office = mdy(assumed_office),
         party = factor(str_remove(party_2, "\\(DFL\\)"),
