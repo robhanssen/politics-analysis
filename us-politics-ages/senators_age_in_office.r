@@ -40,7 +40,7 @@ senators <-
         age_in_office = (assumed_office - born) / lubridate::dyears(1),
         time_in_office = (today() - assumed_office) / lubridate::dyears(1),
         state_abb = sapply(state, function(x) state.abb[which(state.name == x)])
-    )
+    ) %>% drop_na(age)
 
 sen_plot <-
     senators %>%
