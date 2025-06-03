@@ -43,7 +43,8 @@ cab_data <-
         partijlist = strsplit(partijen, ", "),
         min_pres_partij = str_remove_all(minister_president, ".*\\(|\\)"),
     ) %>%
-    replace_na(list(aftreden = ymd(20230707))) %>%
+    # replace_na(list(aftreden = ymd(20230707))) %>%
+    replace_na(list(aftreden = today())) %>%
     mutate(cab_length = (aftreden - aantreden) / dyears(1))
 
 in_cab_leng <-
@@ -66,7 +67,11 @@ colors <-
         "D66" = "orange",
         "PPR" = "lightgreen",
         "LPF" = "black",
-        "ChristenUnie" = "lightblue"
+        "ChristenUnie" = "lightblue",
+        "BBB" = "green",
+        "PVV" = "brown",
+        "NSC" = "lightblue", 
+        "partijloos" = "purple"
     )
 
 min_pres_alpha <-
@@ -78,7 +83,7 @@ min_pres_alpha <-
 p1 <-
     cab_data %>%
     unnest_longer(partijlist) %>%
-    semi_join(in_cab_leng %>% filter(in_cab > 5),
+    semi_join(in_cab_leng %>% filter(in_cab > 0),
         by = c("partijlist")
     ) %>%
     mutate(min_pres = partijlist == min_pres_partij) %>%
@@ -105,14 +110,14 @@ p1 <-
     labs(
         x = "", y = "",
         caption = glue::glue(
-            "Partijen met coalitiedeelname meer dan 5 jaar sinds 1945.\n",
+            # "Partijen met coalitiedeelname meer dan 5 jaar sinds 1945.\n",
             "Transparante kleuren tonen kabinetsdeelname, ",
             "niet-transparante kleur toont partij van de premier."
         )
     )
 
 ggsave("dutch-coalitions/party-in-gov.png",
-    height = 3, width = 7,
+    height = 5, width = 7,
     plot = p1
 )
 
@@ -159,5 +164,7 @@ cab_len_g <-
     geom_vline(xintercept = 4) +
     scale_fill_manual(values = colors) + 
     labs(x = "Kabinet termijn (in jaren)", y = "")
+
+ggsave("dutch-coalitions/term_length.png", width = 8, height = 10, plot = cab_len_g)
 
 Sys.setlocale("LC_TIME", oldloc)
