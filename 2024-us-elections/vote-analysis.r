@@ -23,7 +23,7 @@ elections <-
     ) %>%
     select(-f)
 
-rucc %>% distinct(description) %>% write_csv("2024-us-elections/sources/rucc_desc_2023.csv")
+# rucc %>% distinct(description) %>% write_csv("2024-us-elections/sources/rucc_desc_2023.csv")
 
 
 rucc <- read_csv("2024-us-elections/sources/rucc2023.csv") %>%
