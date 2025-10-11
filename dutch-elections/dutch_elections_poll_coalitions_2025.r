@@ -8,20 +8,30 @@ library(rvest)
 
 theme_set(theme_light())
 
+MIN_SEATS <- 75 # nolint
+MAX_PARTIES <- 5 # nolint
+
 url <-
-    "https://nl.wikipedia.org/wiki/Tweede_Kamerverkiezingen_2025/Peilingen" # nolint
+    "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2025_Dutch_general_election"
 
 data_raw <- url %>%
     read_html() %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
-    html_table(fill = TRUE)
+    html_table(fill = TRUE) %>%
+    slice(-1)
+
+pollco <- data_raw[1, 1]
+polldate <- data_raw[1, 2]
+pnames <- names(data_raw)[4:ncol(data_raw)] %>% str_remove(., "\\[.?\\]")
+pnames <- pnames[1:(length(pnames)-2)]
+
 
 election <-
     data_raw %>%
-    janitor::clean_names() %>%
-    select(pvv:overig) %>%
-    mutate(across(everything(), as.numeric)) %>%
+    select(4:(length(pnames)+3)) %>%
+    set_names(pnames) %>%
     slice(1) %>%
+    mutate(across(everything(), as.integer)) %>%
     pivot_longer(everything(),
         names_to = "parties",
         values_to = "totalseats"
@@ -29,9 +39,7 @@ election <-
     filter(totalseats > 0) %>%
     arrange(desc(totalseats))
 
-partycount <- election %>%
-    count() %>%
-    pull(n)
+partycount <- nrow(election)
 
 decomp_vector <- function(vector) {
     v <- strsplit(vector, "")[[1]]
@@ -77,44 +85,32 @@ coalitions <-
     select(partylist, numparties, seatcount)
 
 majoritycoalitions <- coalitions %>%
-    filter(seatcount >= 75) %>%
-    filter(numparties <= 5) %>%
+    filter(seatcount >= MIN_SEATS) %>%
+    filter(numparties <= MAX_PARTIES) %>%
     arrange(numparties, -seatcount)
 
-minoritycoalitions <- coalitions %>%
-    filter(seatcount >= 70) %>%
-    filter(seatcount <= 75) %>%
-    filter(numparties <= 5) %>%
-    arrange(numparties, -seatcount)
+# minoritycoalitions <- coalitions %>%
+#     filter(seatcount >= 70) %>%
+#     filter(seatcount <= 75) %>%
+#     filter(numparties <= 5) %>%
+#     arrange(numparties, -seatcount)
 
 
 maj_party_list <- majoritycoalitions %>%
     pull(partylist) %>%
     lapply(., \(x) strsplit(x, ", ") %>% unlist())
 
-
 x <- table(unlist(maj_party_list)) / length(maj_party_list)
 
 party_coal_g <- tibble(name = names(x), pct = as.numeric(x)) %>%
-    mutate(
-        name = toupper(name),
-        name = str_replace_all(name, "X|_", ""),
-        name = case_when(
-            name == "GLPVDA" ~ "PvdA / GL",
-            name == "D66" ~ "D'66",
-            name == "PVDD" ~ "PvdD",
-            TRUE ~ name
-        )
-    ) %>%
     ggplot(
         aes(y = reorder(name, pct), x = pct)
     ) +
     geom_col(fill = "steelblue") +
     labs(
-        title = "Probability of Parties being in a Majority Coalition",
+        title = "Waarschijnlijkheid dat een partij in de coalitie zit",
         y = NULL,
         x = NULL,
-        # caption = "Data from Wikipedia; counting coalitions with 75 or more seats and 5 or less parties"
     ) +
     scale_x_continuous(
         labels = scales::percent_format(accuracy = 1),
@@ -132,7 +128,7 @@ party_matrix <- matrix(0,
     ncol = partycount,
     dimnames = list(election$parties, election$parties)
 )
-seq_along(majoritycoalitions)
+
 for (i in 1:nrow(majoritycoalitions)) { # nolint
     parties <- strsplit(majoritycoalitions$partylist[i], ", ")[[1]]
     for (p1 in parties) {
@@ -147,25 +143,8 @@ for (i in 1:nrow(majoritycoalitions)) { # nolint
 party_df <- as.data.frame(as.table(party_matrix)) %>%
     filter(Freq > 0)
 
+
 party_df <- party_df %>%
-    mutate(
-        Var1 = toupper(Var1),
-        Var1 = str_replace_all(Var1, "X|_", ""),
-        Var1 = case_when(
-            Var1 == "GLPVDA" ~ "PvdA / GL",
-            Var1 == "D66" ~ "D'66",
-            Var1 == "PVDD" ~ "PvdD",
-            TRUE ~ Var1
-        ),
-        Var2 = toupper(Var2),
-        Var2 = str_replace_all(Var2, "X|_", ""),
-        Var2 = case_when(
-            Var2 == "GLPVDA" ~ "PvdA / GL",
-            Var2 == "D66" ~ "D'66",
-            Var2 == "PVDD" ~ "PvdD",
-            TRUE ~ Var2
-        )
-    ) %>%
     mutate(Freq = round(Freq / nrow(majoritycoalitions), 3))
 
 
@@ -174,14 +153,16 @@ party_df$Var2 <- factor(party_df$Var2, levels = sort(unique(party_df$Var1)))
 
 
 heatmap_g <-
-    ggplot(party_df, aes(x = Var1, y = Var2, fill = Freq)) +
+    ggplot(party_df, aes(x = Var1, y = Var2, fill = Freq, color = Freq > 1/3)) +
     geom_tile(color = "white", show.legend = FALSE) +
     scale_fill_gradient2(low = "white", mid = "gray90", high = "steelblue") +
+    scale_color_manual(values = c("TRUE" = "gray90", "FALSE" = "gray10")) +
     geom_text(aes(label = scales::percent(Freq, accuracy = 2)),
-        color = "black", size = 2.5
+        # color = "black", 
+        size = 2.5
     ) +
     labs(
-        title = "Probability of Parties being in a majority coalition together",
+        title = "Waarschijnlijkheid dat partijen samen in een coalitie zitten",
         x = NULL,
         y = NULL,
         fill = NULL,
@@ -190,15 +171,19 @@ heatmap_g <-
     ) +
     coord_fixed() +
     theme(
-        # legend.position = "none",
+        legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid = element_blank()
     )
 
 party_coal_g + heatmap_g + plot_layout(ncol = 2) +
     plot_annotation(
-        title = "Dutch Election 2025: Coalition Analysis",
-        caption = "Data from Wikipedia; counting coalitions with 75 or more seats and 5 or less parties"
+        title = "TK Verkiezingen 2025: Coalitie Analyse",
+        caption = glue::glue(
+            "Data van Wikipedia; realistische coalities hebben {MIN_SEATS} ",
+            "of meer zetels and {MAX_PARTIES} of minder partijen",
+            "\nPoll op {polldate} door {pollco}"
+        )
     ) & theme(
     plot.title = element_text(hjust = 0),
     plot.caption = element_text(hjust = 0),
