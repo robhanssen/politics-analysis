@@ -175,22 +175,22 @@ party_df$Var2 <- factor(party_df$Var2, levels = sort(unique(party_df$Var1)))
 
 heatmap_g <-
     ggplot(party_df, aes(x = Var1, y = Var2, fill = Freq)) +
-    geom_tile(color = "white") +
+    geom_tile(color = "white", show.legend = FALSE) +
     scale_fill_gradient2(low = "white", mid = "gray90", high = "steelblue") +
     geom_text(aes(label = scales::percent(Freq, accuracy = 2)),
         color = "black", size = 2.5
     ) +
     labs(
-        title = "Probability of Majority Coalitions Parties are in Together",
+        title = "Probability of Parties being in a majority coalition together",
         x = NULL,
         y = NULL,
-        fill = "Count",
+        fill = NULL,
         legend = NULL
         # caption = "Data from Wikipedia; counting coalitions with 75 or more seats and 5 or less parties"
     ) +
     coord_fixed() +
     theme(
-        legend.position = "none",
+        # legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid = element_blank()
     )
