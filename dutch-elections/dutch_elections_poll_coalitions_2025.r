@@ -23,12 +23,12 @@ data_raw <- url %>%
 pollco <- data_raw[1, 1]
 polldate <- data_raw[1, 2]
 pnames <- names(data_raw)[4:ncol(data_raw)] %>% str_remove(., "\\[.?\\]")
-pnames <- pnames[1:(length(pnames)-2)]
+pnames <- pnames[1:(length(pnames) - 2)]
 
 
 election <-
     data_raw %>%
-    select(4:(length(pnames)+3)) %>%
+    select(4:(length(pnames) + 3)) %>%
     set_names(pnames) %>%
     slice(1) %>%
     mutate(across(everything(), as.integer)) %>%
@@ -141,39 +141,33 @@ for (i in 1:nrow(majoritycoalitions)) { # nolint
 }
 
 party_df <- as.data.frame(as.table(party_matrix)) %>%
-    filter(Freq > 0)
-
-
-party_df <- party_df %>%
+    filter(Freq > 0) %>%
     mutate(Freq = round(Freq / nrow(majoritycoalitions), 3))
 
-
-party_df$Var1 <- factor(party_df$Var1, levels = sort(unique(party_df$Var1)))
-party_df$Var2 <- factor(party_df$Var2, levels = sort(unique(party_df$Var1)))
-
+party_df$Var1 <- factor(party_df$Var1, levels = sort(unique(party_df$Var1), FALSE))
+party_df$Var2 <- factor(party_df$Var2, levels = sort(unique(party_df$Var2), TRUE))
 
 heatmap_g <-
-    ggplot(party_df, aes(x = Var1, y = Var2, fill = Freq, color = Freq > 1/3)) +
+    ggplot(party_df, aes(x = Var1, y = Var2, fill = Freq, color = Freq >= 1 / 2)) +
     geom_tile(color = "white", show.legend = FALSE) +
     scale_fill_gradient2(low = "white", mid = "gray90", high = "steelblue") +
     scale_color_manual(values = c("TRUE" = "gray90", "FALSE" = "gray10")) +
-    geom_text(aes(label = scales::percent(Freq, accuracy = 2)),
-        # color = "black", 
+    geom_text(
+        aes(label = scales::percent(Freq, accuracy = 2)),
         size = 2.5
     ) +
     labs(
-        title = "Waarschijnlijkheid dat partijen samen in een coalitie zitten",
+        title = "Waarschijnlijkheid dat twee partijen samen in een coalitie zitten",
         x = NULL,
         y = NULL,
         fill = NULL,
         legend = NULL
-        # caption = "Data from Wikipedia; counting coalitions with 75 or more seats and 5 or less parties"
     ) +
     coord_fixed() +
     theme(
         legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
-        panel.grid = element_blank()
+        panel.grid = element_blank(), 
     )
 
 party_coal_g + heatmap_g + plot_layout(ncol = 2) +
@@ -181,11 +175,11 @@ party_coal_g + heatmap_g + plot_layout(ncol = 2) +
         title = "TK Verkiezingen 2025: Coalitie Analyse",
         caption = glue::glue(
             "Data van Wikipedia; realistische coalities hebben {MIN_SEATS} ",
-            "of meer zetels and {MAX_PARTIES} of minder partijen",
-            "\nPoll op {polldate} door {pollco}"
+            "of meer zetels and {MAX_PARTIES} of minder partijen ({nrow(majoritycoalitions)} mogelijkheden)",
+            "\nPeiling op {polldate} door {pollco}"
         )
     ) & theme(
-    plot.title = element_text(hjust = 0),
+    plot.title = element_text(hjust = 0, size = 12.5),
     plot.caption = element_text(hjust = 0),
     plot.title.position = "plot",
     plot.caption.position = "plot"
