@@ -186,3 +186,14 @@ party_coal_g + heatmap_g + plot_layout(ncol = 2) +
 )
 
 ggsave("dutch-elections/dutch_elections_poll_coalitions_2025.png", width = 12, height = 6)
+
+
+coalition_subset <- function(coal, party) {
+    coal %>%
+        filter(!str_detect(partylist, party)) %>%
+        arrange(numparties, -seatcount) %>%
+        head(5)
+}
+
+coalition_subset(majoritycoalitions, "PVV") 
+coalition_subset(majoritycoalitions, "GL/PvdA")
