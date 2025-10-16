@@ -39,40 +39,26 @@ election <-
     data_raw %>%
     select(1, 3:(length(pnames) + 2)) %>%
     set_names(c("d", pnames)) %>%
-    # slice(1:5) %>%
     mutate(across(!d, as.integer)) %>%
+    drop_na() %>%
     pivot_longer(!d,
         names_to = "parties",
         values_to = "totalseats"
     ) %>%
     filter(totalseats > 0) %>%
-    # arrange(desc(totalseats)) %>%
     nest(election = !d)
 
-# majoritycoalitions <- generate_coalitions(election)
-
-# coalitions_time <- map(election$election[seq_len(TIME_SLICE)], generate_coalitions)
 coalitions_time <- future_map(election$election[seq_len(TIME_SLICE)], generate_coalitions)
 names(coalitions_time) <- election$d[seq_len(TIME_SLICE)]
 
-
-extract_coalition <- function(majoritycoalitions) {
-    maj_party_list <- majoritycoalitions %>%
-        pull(partylist) %>%
-        lapply(., \(x) strsplit(x, ", ") %>% unlist())
-
-    x <- table(unlist(maj_party_list)) / length(maj_party_list)
-    x
-}
-
 coal_probs <- map(coalitions_time, extract_coalition)
 
-all_probs <- map_df(coal_probs, \(x) x, .id = "date") %>%
-    bind_rows() %>%
+all_probs <-
+    map_df(coal_probs, \(x) x, .id = "date") %>%
     pivot_longer(!date, names_to = "party", values_to = "prob") %>%
     mutate(date = factor(date, levels = rev(data_raw$date)))
 
-all_probs_g <- 
+all_probs_g <-
     all_probs %>%
     ggplot(aes(x = date, y = prob, color = party, group = party)) +
     geom_line() +
@@ -98,4 +84,3 @@ all_probs_g <-
 ggsave("dutch-elections/dutch_elections_poll_coalitions_2025_time.png",
     width = 10, height = 6, plot = all_probs_g
 )
-

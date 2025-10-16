@@ -53,3 +53,12 @@ generate_coalitions <- function(election, min_seats = MIN_SEATS, max_parties = M
     majoritycoalitions
 }
 
+
+extract_coalition <- function(majoritycoalitions) {
+    maj_party_list <- majoritycoalitions %>%
+        pull(partylist) %>%
+        lapply(., \(x) strsplit(x, ", ") %>% unlist())
+
+    x <- table(unlist(maj_party_list)) / length(maj_party_list)
+    x
+}
