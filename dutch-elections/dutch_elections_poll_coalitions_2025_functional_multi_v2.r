@@ -118,7 +118,7 @@ cross_corr_coalition <- function(coal_option) {
         pair_df,
         pair_df %>% rename(Var1 = Var2, Var2 = Var1)
     ) %>%
-        tidyr::complete(Var1 = election$parties, Var2 = election$parties, fill = list(Freq = 0)) %>%
+        tidyr::complete(Var1 = election_list$parties, Var2 = election_list$parties, fill = list(Freq = 0)) %>%
         filter(Var1 != Var2)
 }
 
