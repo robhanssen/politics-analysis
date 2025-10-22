@@ -122,6 +122,7 @@ cross_corr_coalition <- function(coal_option) {
         filter(Var1 != Var2)
 }
 
+
 coalition_probability <- function(coal_option) {
     coal_option |>
         rownames_to_column(var = "coalition_id") |>
@@ -130,7 +131,16 @@ coalition_probability <- function(coal_option) {
         mutate(prob = round(n / nrow(coal_option), 3))
 }
 
+partyorder <- election$election[[1]] %>%
+    arrange(desc(totalseats)) %>%
+    pull(parties)
 last_poll <- coalitions_over_time[[1]]
+
+partyorder <- election$election[[1]] %>%
+    complete(parties = election_list$parties, fill = list(totalseats = 0)) %>%
+    arrange(desc(totalseats)) %>%
+    pull(parties)
+
 
 party_coal_g <-
     coalition_probability(last_poll) %>%
@@ -154,8 +164,8 @@ party_coal_g <-
 party_heat_g <-
     cross_corr_coalition(last_poll) %>%
     mutate(
-        Var1 = factor(Var1, levels = levs, ordered = TRUE),
-        Var2 = factor(Var2, levels = rev(levs), ordered = TRUE)
+        Var1 = factor(Var1, levels = partyorder, ordered = TRUE),
+        Var2 = factor(Var2, levels = rev(partyorder), ordered = TRUE)
     ) %>%
     ggplot(aes(x = Var1, y = Var2, fill = Freq, color = Freq >= 1 / 2)) +
     geom_tile(color = "white", show.legend = FALSE) +
