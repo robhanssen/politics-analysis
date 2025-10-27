@@ -201,3 +201,90 @@ p <-
 
 
 ggsave("dutch-elections/dutch_elections_poll_coalitions_2025.png", width = 12, height = 10, plot = p)
+
+party_pos <-
+    tribble(
+        ~parties, ~position,
+        "PvdD", "Extreme-Left",
+        "SP", "Extreme-Left",
+        "Denk", "Left",
+        "GL/PvdA", "Center-Left",
+        "Volt", "Center-Left",
+        "D66", "Center-Left",
+        "CDA", "Center",
+        "VVD", "Center-Right",
+        "NSC", "Center-Right",
+        "BBB", "Center-Right",
+        "50+", "Center-Right",
+        "CU", "Center-Right",
+        "SGP", "Right",
+        "PVV", "Extreme-Right",
+        "FvD", "Extreme-Right",
+        "JA21", "Extreme-Right",
+    )
+
+position_distrib <- function(el) {
+    el_pos <-
+        el %>%
+        left_join(party_pos, by = "parties") %>%
+        mutate(
+            global_position = str_remove(position, "Extreme-|Center-"),
+            position = factor(
+                position,
+                levels = c("Extreme-Left", "Left", "Center-Left", "Center", "Center-Right", "Right", "Extreme-Right"),
+                ordered = TRUE
+            ),
+            global_position = factor(
+                global_position,
+                levels = c("Left", "Center", "Right"),
+                ordered = TRUE
+            )
+        )
+
+    el_pos %>%
+        reframe(
+            totalseats = sum(totalseats),
+            .by = position
+        ) %>%
+        arrange(position)
+}
+
+distlist <- map(election$election, position_distrib)
+names(distlist) <- election$d
+
+part_dist_g <-
+    tibble(d = election$d, distlist = distlist) %>%
+    mutate(d = factor(d, levels = rev(data_raw$date))) %>%
+    arrange(d) %>%
+    unnest(cols = distlist) %>%
+    ggplot(aes(x = d, y = totalseats, fill = position)) +
+    geom_col(position = "fill", color = "gray50", linewidth = .01, width = .99) +
+    coord_cartesian(expand = FALSE) +
+    geom_hline(yintercept = 0.5, linetype = 1, color = "gray10", alpha = .3, linewidth = 2) +
+    scale_y_continuous(
+        labels = scales::percent_format(accuracy = 1),
+        sec.axis = sec_axis(~ . * 150, breaks = seq(0, 150, 15))
+    ) +
+    scale_fill_manual(
+        values = c(
+            "Extreme-Left" = "darkred",
+            "Left" = "red",
+            "Center-Left" = "pink",
+            "Center" = "white",
+            "Center-Right" = "lightblue",
+            "Right" = "blue",
+            "Extreme-Right" = "darkblue"
+        )
+    ) +
+    theme_light() +
+    labs(x = NULL, y = NULL) +
+    theme(
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+    )
+
+ggsave("dutch-elections/dutch_elections_poll_coalitions_2025_position.png",
+    width = 8, height = 5, plot = part_dist_g
+)
