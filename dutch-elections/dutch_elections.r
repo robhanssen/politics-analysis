@@ -10,7 +10,8 @@ theme_set(theme_light())
 totalseats <- 150
 
 # election result
-election <- read_csv("dutch-elections/sources/2023votecount.csv")
+# election <- read_csv("dutch-elections/sources/2023votecount.csv")
+election <- read_csv("dutch-elections/sources/2025votecount.csv")
 # total number of valid votes casts
 totalvotes <- sum(election$votes)
 
@@ -27,6 +28,7 @@ kiesdeler <- totalvotes / totalseats
 election <-
     election %>%
     mutate(
+        parties = str_remove(parties, "^[0-9]+\\. "),
         seats = floor(votes / totalvotes * totalseats),
         extraseats = 0,
         totalseats = seats
