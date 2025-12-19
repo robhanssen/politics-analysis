@@ -261,7 +261,6 @@ vote_data %>%
         labels = scales::label_number(
             scale = 1e-6,
             suffix = "M",
-            
         ),
         sec.axis = sec_axis(~ . / 20e3, name = "Cumulative counties", breaks = seq(0, 3000, 1000))
     ) +
@@ -278,7 +277,7 @@ vote_data %>%
         legend.position = "none",
         axis.text.y.right = element_text(color = "black"),
         axis.title.y.right = element_text(color = "black")
-    )  +
+    ) +
     labs(
         x = "Cumulative votes",
         y = "Cumulative votes",
@@ -287,3 +286,62 @@ vote_data %>%
     )
 
 ggsave("2024-us-elections/graphs/vote-cum.png", width = 8, height = 6)
+
+
+
+income <- read_csv("2024-us-elections/sources/county_income2023.csv") %>%
+    mutate(
+        county_fips = paste0(`State FIPS Code`, `County FIPS Code`, sep = "")
+    ) %>%
+    select(c(3, 4, 5, 7))
+
+names(income) <- c("state", "name", "income", "county_fips")
+
+elections %>%
+    filter(year == 2024) %>%
+    inner_join(income, by = "county_fips") %>%
+    inner_join(rucc, by = "county_fips") %>%
+    mutate(
+        # population = as.numeric(population_2020),
+        # rucc = as.numeric(rucc_2023), # factor(rucc_2023, levels = as.character(1:9), label = 1:9)
+        vote_direction = ifelse(votes_gop > votes_dem, "GOP", "Dem"),
+        description = case_when(
+            rucc == 1 ~ "1 - Metro areas of\n>1 million population",
+            rucc == 2 ~ "2 - Metro areas of\n 250,000-1 million population",
+            rucc == 3 ~ "3 - Metro areas of\n <250,000 population",
+            rucc == 4 ~ "4 - Urban population >20,000\nadjacent to a metro area",
+            rucc == 5 ~ "5 - Urban population >20,000\nnot adjacent to a metro area",
+            rucc == 6 ~ "6 - Urban population 5,000-20,000\nadjacent to a metro area",
+            rucc == 7 ~ "7 - Urban population of 5,000-20,000\nnot adjacent to a metro area",
+            rucc == 8 ~ "8 - Urban population <5,000\nadjacent to a metro area",
+            rucc == 9 ~ "9 - Urban population <5,000\nnot adjacent to a metro area"
+        ),
+        description = factor(description)
+    ) %>%
+    ggplot(aes(x = income, y = fct_reorder(description, -rucc), fill = vote_direction)) +
+    ggridges::geom_density_ridges(alpha = .4) +
+    scale_x_continuous(
+        # limits = c(0, 100000),
+        labels = scales::label_dollar(
+            scale = 1e-3,
+            suffix = "K"
+        )
+    ) +
+    # scale_y_discrete(
+    #     transform ="reverse"
+    # ) +
+    scale_fill_manual(
+        values = c("Dem" = "blue", "GOP" = "red")
+    ) +
+    labs(
+        x = "Median income at county level",
+        # y = "RUCC Description",
+        y = NULL,
+        title = "Income vs. Vote Direction in 2024 Presidential Election",
+        fill = "Dominant Vote"
+    ) +
+    theme(
+        plot.title.position = "plot"
+    )
+
+ggsave("2024-us-elections/graphs/income-vs-vote.png", width = 8, height = 6)
