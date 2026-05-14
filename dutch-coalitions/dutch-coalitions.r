@@ -51,6 +51,7 @@ cab_data <-
 in_cab_leng <-
     cab_data %>%
     unnest_longer(partijlist) %>%
+    filter(aantreden >= ymd(19450101)) %>%
     group_by(partijlist) %>%
     summarize(in_cab = sum(cab_length)) %>%
     arrange(-in_cab)
