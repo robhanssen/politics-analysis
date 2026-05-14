@@ -16,7 +16,8 @@ url <- "https://en.wikipedia.org/wiki/List_of_current_United_States_senators"
 
 data_raw <- url %>%
     read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[6]') %>%
+    html_nodes("table") %>% 
+    .[[6]] %>%   # this number needs to be updated if the wikipedia page changes
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
     select(state, senator, party_2, born, assumed_office)

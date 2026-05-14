@@ -16,7 +16,8 @@ url <- "https://en.wikipedia.org/wiki/List_of_current_members_of_the_United_Stat
 
 data_raw <- url %>%
     read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[6]') %>%
+    html_nodes("table") %>% 
+    .[[7]] %>%   # this number needs to be updated if the wikipedia page changes
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
     rename_with(~"born", starts_with("born")) %>%
@@ -27,8 +28,9 @@ data_cleaned <-
     mutate(across(everything(), ~ str_remove_all(.x, "\\[[[:lower:]]\\]")),
         born = ymd(str_remove_all(born, "\\).*|\\(")),
         party = factor(str_remove(party_2, "\\(DFL\\)")),
-        assumed_office = as.numeric(str_trim(str_remove_all(assumed_office, "\\(.*|\\)"))),
-        assumed_office = ymd(glue::glue("{assumed_office}-01-03")),
+        assumed_office = mdy(assumed_office),
+        # assumed_office = as.numeric(str_trim(str_remove_all(assumed_office, "\\(.*|\\)"))),
+        # assumed_office = ymd(glue::glue("{assumed_office}-01-03")),
         state = str_trim(str_remove_all(district, "\\d{1,2}|at-large")),
         state_abb = sapply(state, function(x) state.abb[which(state.name == x)])
     ) %>%
@@ -44,6 +46,10 @@ members <-
         state_abb = state.abb[state == state]
     ) %>%
     drop_na(age)
+
+
+pcts <- 1 - ecdf(members$age)(c(39, 55, 67, 77.27))
+
 
 mem_plot <-
     members %>%
