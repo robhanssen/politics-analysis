@@ -21,7 +21,8 @@ url <- "https://nl.wikipedia.org/wiki/Nederlandse_kabinetten_sinds_de_Tweede_Wer
 
 data_raw <- url %>%
     read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
+    html_nodes("table") %>%
+    .[[1]] %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
     select(
@@ -60,15 +61,17 @@ colors <-
         "CHU" = "darkgreen",
         "CDA" = "darkgreen",
         "ARP" = "darkgreen",
+        "RKSP"   = "darkgreen",
         "VDB" = "red",
         "PvdA" = "red",
         "DS'70" = "red",
+        "SDAP" = "red",
         "VVD" = "blue",
         "D66" = "orange",
         "PPR" = "lightgreen",
         "LPF" = "black",
         "ChristenUnie" = "lightblue",
-        "BBB" = "green",
+        "BBB" = "darkgreen",
         "PVV" = "brown",
         "NSC" = "lightblue", 
         "partijloos" = "purple"
