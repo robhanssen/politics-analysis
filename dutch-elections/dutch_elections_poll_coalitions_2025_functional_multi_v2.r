@@ -24,7 +24,8 @@ url <-
 
 data_raw <- url %>%
     read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
+    html_nodes("table") %>%
+    .[[1]] %>%
     html_table(fill = TRUE) %>%
     slice(-1) %>%
     unite("date", 1:2, sep = "\n")
