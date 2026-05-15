@@ -14,15 +14,18 @@ theme_set(theme_light() +
 
 url <- "https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States"
 
-data_raw <- url %>%
-    read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
+data_raw <-
+    read_html(url) %>%
+    html_nodes("table") %>%
+    .[[1]] %>%
+    # html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
     select(name_birth_death, term = starts_with("term"))
 
 data_cleaned <-
     data_raw %>%
+    distinct() %>%  # deduplicate
     mutate(across(
         name_birth_death:term,
         ~ str_remove_all(.x, "\\[\\d{2}\\]")
@@ -34,11 +37,12 @@ data_cleaned <-
     mutate(across(
         name_birth_death:term,
         ~ str_remove_all(.x, "\\[[[:lower:]]\\]")
-    )) %>%
+    )) %>% 
     separate(name_birth_death, into = c("name", "birth_death"), sep = "\\(") %>%
-    mutate(across(birth_death, ~ str_remove_all(.x, "(\\)|b\\.)"))) %>%
-    separate(birth_death, into = c("birth", "death"), sep = "\\–") %>%
-    separate(term, into = c("term_start", "term_end"), sep = "\\–") %>%
+    mutate(across(birth_death, ~ str_remove_all(.x, "(\\)|b\\.|\\d{1}(st|nd) term)"))) %>% 
+    separate(birth_death, into = c("birth", "death"), sep = "\\–") %>% 
+    mutate(across(birth:death, str_trim)) %>%
+    separate(term, into = c("term_start", "term_end"), sep = "\\–") %>% 
     mutate(across(starts_with("term"), ~ as.Date(.x, format = "%B %d, %Y"))) %>%
     mutate(across(
         birth:death,
@@ -66,6 +70,7 @@ presidents <-
 
 prez_plot <-
     presidents %>%
+    # slice(1:44) %>%
     mutate(name = fct_reorder(name, youngest_age_in_office)) %>%
     ggplot() +
     aes(y = name) +
