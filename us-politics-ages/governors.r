@@ -14,7 +14,9 @@ url <- "https://en.wikipedia.org/wiki/List_of_current_United_States_governors"
 
 data_raw <- url %>%
     read_html() %>%
-    html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+    html_nodes("table") %>%
+    .[[2]] %>%
+    # html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
     html_table(fill = TRUE)
 
 # names(data_raw) <- data_raw[1, ]
@@ -25,7 +27,7 @@ governors <-
     filter(state != "State") %>%
     select(-starts_with("na")) %>%
     rename_with(~str_remove(.x, "_[0-9]*")) %>%
-    select(state, governor, inauguration, party = party_2, born) %>%
+    select(state, governor, inauguration = termstart_14, party = party_2, born) %>%
     mutate(
         party = case_when(
             str_detect(party, "Democratic") ~ "Democratic",
